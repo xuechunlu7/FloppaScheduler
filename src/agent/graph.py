@@ -107,7 +107,12 @@ def generate_plan(state: AgentState):
     schedule = result.model_dump()
     
     # Manually append fixed schedule events to avoid LLM hallucination
-    fixed_events = state.get("constraints", {}).get("fixed_schedule", {}).get("events", [])
+    fixed_schedule = state.get("constraints", {}).get("fixed_schedule", {})
+    if isinstance(fixed_schedule, list):
+        fixed_events = fixed_schedule
+    else:
+        fixed_events = fixed_schedule.get("events", [])
+        
     for f_event in fixed_events:
         time_parts = f_event.get("time", "").split("-")
         start_time = time_parts[0] if len(time_parts) > 0 else ""

@@ -5,7 +5,8 @@ import { Settings, UploadCloud, Sparkles, AlertCircle, CheckCircle2 } from 'luci
 import CalendarGrid from './CalendarGrid';
 import './index.css';
 
-const API_URL = 'https://floppascheduler.onrender.com';
+// Automatically use local backend in development, Render backend in production
+const API_URL = import.meta.env.DEV ? 'http://localhost:8000' : 'https://floppascheduler.onrender.com';
 
 function App() {
   const [showSettings, setShowSettings] = useState(false);

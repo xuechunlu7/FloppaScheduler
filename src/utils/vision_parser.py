@@ -50,6 +50,11 @@ def extract_schedule_from_image(image_path: str) -> Dict[str, Any]:
             "format_instructions": parser.get_format_instructions(),
             "image_data": image_url
         })
+        
+        # Handle cases where LLM returns a list directly
+        if isinstance(result, list):
+            result = {"events": result}
+            
         print(f"    [Vision Parser] Successfully extracted {len(result.get('events', []))} events.")
         return result
     except Exception as e:
