@@ -20,13 +20,13 @@ class FinalScheduleEvent(BaseModel):
 class FinalSchedule(BaseModel):
     events: List[FinalScheduleEvent] = Field(description="The list of all scheduled events for the week")
 
-# We use gemini-3.5-flash for complex structured parsing (guaranteed free tier access)
+# We use gemini-2.0-flash for complex structured parsing (guaranteed free tier access)
 # LLM will be instantiated lazily in each node to allow dynamic API key injection
 
 def parse_intent(state: AgentState):
     print(f"--> Parsing intent: {state['user_intent']}")
     
-    llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0)
+    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0)
     
     # Force the LLM to output according to our Pydantic schema
     structured_llm = llm.with_structured_output(ParsedIntent)
@@ -84,7 +84,7 @@ def retrieve_constraints(state: AgentState):
 def generate_plan(state: AgentState):
     print("--> Generating plan...")
     
-    llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0)
+    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0)
     structured_llm = llm.with_structured_output(FinalSchedule)
     
     ice_rink_times = state.get("constraints", {}).get("venues", {}).get("ice_rink", {}).get("open_hours", {})
@@ -131,7 +131,7 @@ def generate_plan(state: AgentState):
 def evaluate_plan(state: AgentState):
     print("--> Evaluating plan for conflicts...")
     
-    llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0)
+    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0)
     
     prompt = ChatPromptTemplate.from_messages([
         ("system", "You are an expert scheduling auditor. Review the generated JSON schedule against the provided constraints and tasks. If there are any conflicts, missing tasks, or broken rules, describe them clearly. If everything looks good, just reply 'No conflicts found.'"),
