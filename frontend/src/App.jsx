@@ -5,7 +5,7 @@ import { Settings, UploadCloud, Sparkles, AlertCircle, CheckCircle2 } from 'luci
 import CalendarGrid from './CalendarGrid';
 import './index.css';
 
-const API_URL = 'http://localhost:8000/api';
+const API_URL = 'https://floppascheduler.onrender.com';
 
 function App() {
   const [showSettings, setShowSettings] = useState(false);
@@ -17,7 +17,7 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
-  
+
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -51,7 +51,7 @@ function App() {
 
     setIsParsing(true);
     setError('');
-    
+
     const formData = new FormData();
     formData.append('file', file);
     formData.append('gemini_api_key', apiKey);
@@ -126,17 +126,17 @@ function App() {
         <div className="glass-panel">
           <h2>1. Extract Fixed Schedule</h2>
           <p>Upload a screenshot of your calendar (Quest, Notion, etc.) to automatically extract fixed classes.</p>
-          
-          <div 
-            className="drop-zone mt-4" 
+
+          <div
+            className="drop-zone mt-4"
             onClick={() => fileInputRef.current.click()}
           >
             <UploadCloud size={48} color={isParsing ? "var(--primary)" : "var(--text-muted)"} style={{ margin: '0 auto 1rem' }} />
             {isParsing ? <h3>Scanning Image with AI...</h3> : <h3>Click to upload screenshot</h3>}
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              style={{ display: 'none' }} 
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: 'none' }}
               accept="image/*"
               onChange={handleImageUpload}
             />
@@ -159,15 +159,15 @@ function App() {
         <div className="glass-panel">
           <h2>2. Schedule Generation</h2>
           <p>Tell Floppa what you want to achieve this week.</p>
-          <textarea 
-            rows="4" 
+          <textarea
+            rows="4"
             placeholder="e.g. Schedule 3 ice training sessions (50 mins each) and 4 study sessions for Grind 75..."
             value={userIntent}
             onChange={(e) => setUserIntent(e.target.value)}
           ></textarea>
-          
-          <button 
-            className="mt-4 flex items-center gap-2" 
+
+          <button
+            className="mt-4 flex items-center gap-2"
             style={{ width: '100%', justifyContent: 'center', padding: '1rem', fontSize: '1.2rem' }}
             onClick={generateSchedule}
             disabled={isGenerating || !userIntent.trim()}
@@ -205,18 +205,18 @@ function App() {
             <p>Your API key and URLs are stored securely in your browser's LocalStorage.</p>
             <div className="flex-col gap-2 mt-4">
               <label>Gemini API Key</label>
-              <input 
-                type="password" 
-                value={apiKey} 
+              <input
+                type="password"
+                value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 placeholder="AIzaSy..."
               />
             </div>
             <div className="flex-col gap-2 mt-4">
               <label>Ice Rink Scraper URL</label>
-              <input 
-                type="text" 
-                value={scrapeUrl} 
+              <input
+                type="text"
+                value={scrapeUrl}
                 onChange={(e) => setScrapeUrl(e.target.value)}
                 placeholder="https://anc.ca.apm..."
               />
