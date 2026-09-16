@@ -90,7 +90,7 @@ def generate_plan(state: AgentState):
     ice_rink_times = state.get("constraints", {}).get("venues", {}).get("ice_rink", {}).get("open_hours", {})
     
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are an expert scheduling assistant. Generate a detailed, logical schedule based on the tasks and constraints. Output a strict JSON matching the schema.\n\nCRITICAL RULES:\n1. The task 'Ice training' MUST be scheduled STRICTLY within the exact available time slots provided below. Do not invent time slots.\n\nAVAILABLE ICE RINK TIMES:\n{ice_rink_times}\n\n2. Tasks extracted from the user intent are ADDITIONAL tasks. You MUST NOT merge them with any events in the `fixed_schedule`.\n3. If the requested duration exceeds the available slot duration, truncate the task duration to fit exactly within the venue slot (e.g. 50 mins)."),
+        ("system", "You are an expert scheduling assistant. Generate a detailed, logical schedule based on the tasks and constraints. Output a strict JSON matching the schema.\n\nCRITICAL RULES:\n1. The task 'Ice training' MUST be scheduled STRICTLY within the exact available time slots provided below. Do not invent time slots.\n\nAVAILABLE ICE RINK TIMES:\n{ice_rink_times}\n\n2. Schedule the tasks extracted from the user intent around the `fixed_schedule`. \n3. ONLY output the newly scheduled tasks (event_type: 'additional' or 'recovery'). DO NOT include the `fixed_schedule` events in your output; they will be merged automatically later.\n4. If the requested duration exceeds the available slot duration, truncate the task duration to fit exactly within the venue slot (e.g. 50 mins).\n5. Ensure NO OVERLAPS with the `fixed_schedule`."),
         ("human", "Timeframe: {timeframe}\n\nTasks:\n{tasks}\n\nConstraints:\n{constraints}")
     ])
     
@@ -105,6 +105,20 @@ def generate_plan(state: AgentState):
     
     # Convert back to dict
     schedule = result.model_dump()
+    
+    # Manually append fixed schedule events to avoid LLM hallucination
+    fixed_events = state.get("constraints", {}).get("fixed_schedule", {}).get("events", [])
+    for f_event in fixed_events:
+        time_parts = f_event.get("time", "").split("-")
+        start_time = time_parts[0] if len(time_parts) > 0 else ""
+        end_time = time_parts[1] if len(time_parts) > 1 else ""
+        schedule["events"].append({
+            "title": f_event.get("event_name", ""),
+            "day_of_week": f_event.get("day_of_week", ""),
+            "start_time": start_time,
+            "end_time": end_time,
+            "event_type": "fixed"
+        })
     
     print("    [Success] Plan generated")
     return {"schedule": schedule}

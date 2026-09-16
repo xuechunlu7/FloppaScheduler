@@ -47,12 +47,9 @@ def fetch_ice_rink_schedule(url: str) -> dict:
         
     except Exception as e:
         print(f"    [Scraper Error] Failed to scrape dynamic times: {e}")
-        print("    [Scraper] Falling back to default static times.")
-        # Fallback
-        return {
-            "weekday": ["14:00-18:00"],
-            "weekend": ["10:00-20:00"]
-        }
+        print("    [Scraper] Returning empty schedule to prevent hallucination.")
+        # Fallback to empty to avoid scheduling impossible times
+        return {}
 
 if __name__ == "__main__":
     url = "https://anc.ca.apm.activecommunities.com/activewaterloo/activity/search?onlineSiteId=0&activity_select_param=2&activity_category_ids=35&viewMode=list"
