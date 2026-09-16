@@ -7,7 +7,7 @@ load_dotenv()
 from src.agent.graph import graph
 
 def main():
-    print("FloppaSchedule MVP Initialized!")
+    print("FloppaScheduler MVP Initialized!")
     
     # Simple check for Gemini API Key
     api_key = os.getenv("GEMINI_API_KEY")

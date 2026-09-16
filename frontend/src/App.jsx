@@ -109,7 +109,7 @@ function App() {
   return (
     <div className="app-container">
       <header className="flex justify-between items-center mb-8">
-        <h1>FloppaSchedule</h1>
+        <h1>FloppaScheduler</h1>
         <button className="secondary flex items-center gap-2" onClick={() => setShowSettings(true)}>
           <Settings size={18} /> Settings
         </button>

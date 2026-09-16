@@ -10,7 +10,7 @@ import base64
 from src.agent.graph import graph
 from src.utils.vision_parser import extract_schedule_from_image
 
-app = FastAPI(title="FloppaSchedule API")
+app = FastAPI(title="FloppaScheduler API")
 
 # Configure CORS for the frontend (Floppa Lab)
 app.add_middleware(
