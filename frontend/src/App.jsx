@@ -57,7 +57,7 @@ function App() {
     formData.append('gemini_api_key', apiKey);
 
     try {
-      const res = await axios.post(`${API_URL}/parse_image`, formData);
+      const res = await axios.post(`${API_URL}/api/parse_image`, formData);
       const events = res.data.events || [];
       setFixedEvents(events);
       localStorage.setItem('fixed_events', JSON.stringify(events));
@@ -93,7 +93,7 @@ function App() {
     };
 
     try {
-      const res = await axios.post(`${API_URL}/generate`, {
+      const res = await axios.post(`${API_URL}/api/generate`, {
         user_intent: userIntent,
         constraints: constraints,
         gemini_api_key: apiKey
