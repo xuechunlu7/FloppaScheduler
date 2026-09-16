@@ -1,0 +1,110 @@
+.calendar-container {
+  display: flex;
+  flex-direction: column;
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  overflow-x: auto;
+  margin-top: 1.5rem;
+}
+
+.calendar-header {
+  display: grid;
+  grid-template-columns: 60px repeat(7, 1fr);
+  border-bottom: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.calendar-header-cell {
+  padding: 1rem 0.5rem;
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.calendar-body {
+  display: grid;
+  grid-template-columns: 60px repeat(7, 1fr);
+  /* 16 hours (08:00 to 23:00), 2 rows per hour (30 min slots) = 32 rows */
+  /* We will dynamically position using grid-row */
+  grid-template-rows: repeat(32, 30px); 
+  position: relative;
+}
+
+.time-column {
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.time-slot {
+  height: 60px; /* 1 hour = 60px (2 rows) */
+  display: flex;
+  justify-content: center;
+  padding-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  box-sizing: border-box;
+}
+
+.day-column {
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+  /* Add subtle grid lines for half hours */
+  background-image: linear-gradient(to bottom, transparent 29px, rgba(255, 255, 255, 0.02) 30px);
+  background-size: 100% 30px;
+}
+
+.event-card {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.2s;
+  z-index: 10;
+}
+
+.event-card:hover {
+  transform: scale(1.02);
+  z-index: 20;
+}
+
+.event-title {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.event-time {
+  opacity: 0.8;
+  font-size: 0.7rem;
+}
+
+/* Event Types */
+.event-fixed {
+  background: rgba(56, 189, 248, 0.15); /* Primary */
+  border-left: 3px solid var(--primary);
+  color: #e0f2fe;
+}
+
+.event-additional {
+  background: rgba(192, 132, 252, 0.15); /* Accent */
+  border-left: 3px solid var(--accent);
+  color: #f3e8ff;
+}
+
+.event-recovery {
+  background: rgba(16, 185, 129, 0.15); /* Success */
+  border-left: 3px solid var(--success);
+  color: #d1fae5;
+}

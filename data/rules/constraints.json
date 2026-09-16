@@ -1,0 +1,110 @@
+{
+  "venues": {
+    "ice_rink": {
+      "scrape_url": "https://anc.ca.apm.activecommunities.com/activewaterloo/activity/search?onlineSiteId=0&activity_select_param=2&activity_category_ids=35&viewMode=list",
+      "open_hours": {
+        "weekday": [
+          "00:00-23:59"
+        ],
+        "weekend": [
+          "00:00-23:59"
+        ]
+      },
+      "reservation_required": true,
+      "reservation_advance_days": 1
+    }
+  },
+  "task_venue_mapping": {
+    "Ice training": "ice_rink",
+    "上冰训练": "ice_rink",
+    "On ice": "ice_rink"
+  },
+  "personal_rules": {
+    "focus_limit_minutes": 90,
+    "heavy_physical_fatigue_recovery_hours": 3
+  },
+  "fixed_schedule": {
+    "events": [
+      {
+        "event_name": "CP 386 - Operating Systems",
+        "day_of_week": "Monday",
+        "time": "16:00-17:20"
+      },
+      {
+        "event_name": "Piano",
+        "day_of_week": "Monday",
+        "time": "19:30-20:30"
+      },
+      {
+        "event_name": "CP 421 - Data Mining",
+        "day_of_week": "Tuesday",
+        "time": "11:30-12:50"
+      },
+      {
+        "event_name": "CP 322 - Machine Learning",
+        "day_of_week": "Tuesday",
+        "time": "13:00-14:20"
+      },
+      {
+        "event_name": "CP 400V - Cloud Computing",
+        "day_of_week": "Tuesday",
+        "time": "14:30-15:50"
+      },
+      {
+        "event_name": "CP 480 - Wireless Communication",
+        "day_of_week": "Tuesday",
+        "time": "17:30-18:50"
+      },
+      {
+        "event_name": "CP 386 - Operating Systems",
+        "day_of_week": "Wednesday",
+        "time": "15:30-16:50"
+      },
+      {
+        "event_name": "Dance",
+        "day_of_week": "Wednesday",
+        "time": "20:15-21:15"
+      },
+      {
+        "event_name": "On ice",
+        "day_of_week": "Wednesday",
+        "time": "21:40-22:40"
+      },
+      {
+        "event_name": "CP 421 - Data Mining",
+        "day_of_week": "Thursday",
+        "time": "11:30-12:50"
+      },
+      {
+        "event_name": "CP 322 - Machine Learning",
+        "day_of_week": "Thursday",
+        "time": "13:00-14:20"
+      },
+      {
+        "event_name": "CP 400V - Cloud Computing",
+        "day_of_week": "Thursday",
+        "time": "14:30-15:50"
+      },
+      {
+        "event_name": "CP 480 - Wireless Communication",
+        "day_of_week": "Thursday",
+        "time": "17:30-18:50"
+      },
+      {
+        "event_name": "Badminton lesson",
+        "day_of_week": "Thursday",
+        "time": "21:30-22:30"
+      },
+      {
+        "event_name": "Open session",
+        "day_of_week": "Friday",
+        "time": "16:30-17:30"
+      },
+      {
+        "event_name": "Open session",
+        "day_of_week": "Saturday",
+        "time": "17:35-18:35"
+      }
+    ]
+  }
+}
