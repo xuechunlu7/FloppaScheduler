@@ -72,7 +72,8 @@ def retrieve_constraints(state: AgentState):
                 if "scrape_url" in venue_info and venue_info["scrape_url"]:
                     url = venue_info["scrape_url"]
                     print(f"    [Scraper] Fetching dynamic times for {venue_name}...")
-                    dynamic_times = fetch_ice_rink_schedule(url)
+                    dynamic_times, scraper_log = fetch_ice_rink_schedule(url)
+                    state["scraper_logs"] = state.get("scraper_logs", "") + f"**{venue_name}**:\n" + scraper_log + "\n\n"
                     if dynamic_times is not None:
                         venue_info["open_hours"] = dynamic_times
                         print(f"    [Success] Injected dynamic times for {venue_name}")
@@ -146,6 +147,10 @@ def evaluate_plan(state: AgentState):
         "schedule": json.dumps(state.get("schedule", {}), indent=2, ensure_ascii=False)
     })
     
+    scraper_logs = state.get("scraper_logs", "")
+    if scraper_logs:
+        evaluation += f"\n\n---\n### 🔍 Web Scraper Debug Logs\n```text\n{scraper_logs}\n```\n"
+        
     print("    [Success] Plan evaluated")
     return {"evaluation": evaluation}
 

@@ -11,7 +11,7 @@ class ParsedIntent(BaseModel):
     tasks: List[TaskIntent] = Field(description="List of tasks extracted from the user's input")
     general_timeframe: str = Field(description="The general timeframe mentioned (e.g., 'next week', 'this weekend')", default="next week")
 
-class AgentState(TypedDict):
+class AgentState(TypedDict, total=False):
     """Global state for the LangGraph agent."""
     user_intent: str
     parsed_tasks: List[Dict[str, Any]]
@@ -19,3 +19,4 @@ class AgentState(TypedDict):
     schedule: str
     constraints: Dict[str, Any]
     evaluation: str
+    scraper_logs: str
