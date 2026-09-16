@@ -73,7 +73,7 @@ def retrieve_constraints(state: AgentState):
                     url = venue_info["scrape_url"]
                     print(f"    [Scraper] Fetching dynamic times for {venue_name}...")
                     dynamic_times = fetch_ice_rink_schedule(url)
-                    if dynamic_times:
+                    if dynamic_times is not None:
                         venue_info["open_hours"] = dynamic_times
                         print(f"    [Success] Injected dynamic times for {venue_name}")
                         

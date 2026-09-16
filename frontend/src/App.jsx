@@ -86,7 +86,7 @@ function App() {
       venues: {
         ice_rink: {
           scrape_url: scrapeUrl,
-          open_hours: { weekday: ["00:00-23:59"], weekend: ["00:00-23:59"] },
+          open_hours: {},
           reservation_required: true,
           reservation_advance_days: 1
         }
