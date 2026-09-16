@@ -6,3 +6,7 @@ chromadb
 pydantic
 python-dotenv
 jupyter
+fastapi
+uvicorn
+python-multipart
+playwright
