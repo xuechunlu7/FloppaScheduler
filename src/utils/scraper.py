@@ -54,6 +54,10 @@ def fetch_ice_rink_schedule(url: str) -> tuple[dict, str]:
             
         print("    [Scraper] Successfully extracted raw text from page.")
         return parse_ice_rink_schedule(content_text)
+    except Exception as e:
+        error_msg = f"[Scraper Error] Failed to scrape dynamic times: {e}"
+        print(f"    {error_msg}")
+        return {}, error_msg
 
 if __name__ == "__main__":
     url = "https://anc.ca.apm.activecommunities.com/activewaterloo/activity/search?onlineSiteId=0&activity_select_param=2&activity_category_ids=35&viewMode=list"
