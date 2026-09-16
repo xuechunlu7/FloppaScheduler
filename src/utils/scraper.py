@@ -28,7 +28,7 @@ def fetch_ice_rink_schedule(url: str) -> dict:
         print("    [Scraper] Successfully extracted raw text from page.")
         
         # Use Gemini to intelligently parse the unstructured text into a schedule
-        llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0)
+        llm = ChatGoogleGenerativeAI(model="gemini-3.6-flash", temperature=0)
         
         prompt = ChatPromptTemplate.from_messages([
             ("system", "You are an expert data extractor. Extract the Adult skate/ice rink availability schedule from the raw webpage text provided. Output a JSON object mapping days of the week to lists of time slots in HH:MM-HH:MM (24-hour) format. If exact dates are provided, convert them to days of the week. Return ONLY valid JSON matching the schema."),

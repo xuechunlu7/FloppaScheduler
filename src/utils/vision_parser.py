@@ -30,7 +30,7 @@ def extract_schedule_from_image(image_path: str) -> Dict[str, Any]:
     mime_type = "image/png" if image_path.lower().endswith(".png") else "image/jpeg"
     image_url = f"data:{mime_type};base64,{encoded_string}"
 
-    llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0)
+    llm = ChatGoogleGenerativeAI(model="gemini-3.6-flash", temperature=0)
     
     parser = JsonOutputParser(pydantic_object=ParsedSchedule)
     

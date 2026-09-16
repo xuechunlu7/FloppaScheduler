@@ -39,6 +39,7 @@ async def parse_image(
         raise HTTPException(status_code=400, detail="Gemini API Key is required")
         
     os.environ["GEMINI_API_KEY"] = gemini_api_key
+    os.environ["GOOGLE_API_KEY"] = gemini_api_key
     
     try:
         # Save uploaded file to temp file
@@ -69,6 +70,7 @@ def generate_schedule(request: GenerateRequest):
         
     # Set the key in environment for Langchain/GenAI SDK to pick up
     os.environ["GEMINI_API_KEY"] = request.gemini_api_key
+    os.environ["GOOGLE_API_KEY"] = request.gemini_api_key
     
     try:
         initial_state = {
