@@ -6,7 +6,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from src.agent.state import AgentState, ParsedIntent
-from src.utils.scraper import fetch_ice_rink_schedule
+from src.utils.scraper import fetch_ice_rink_schedule, parse_ice_rink_schedule
 from pydantic import BaseModel, Field
 from typing import List
 
@@ -66,10 +66,17 @@ def retrieve_constraints(state: AgentState):
                 constraints = json.load(f)
                 print("    [Success] Loaded static constraints from file")
             
-        # Dynamically fetch times for any venue that provides a scrape_url
+        # Dynamically fetch times for any venue that provides a scrape_url or manual_times
         if "venues" in constraints:
             for venue_name, venue_info in constraints["venues"].items():
-                if "scrape_url" in venue_info and venue_info["scrape_url"]:
+                if "manual_times" in venue_info and venue_info["manual_times"]:
+                    print(f"    [Parser] Parsing manual text for {venue_name}...")
+                    dynamic_times, parser_log = parse_ice_rink_schedule(venue_info["manual_times"])
+                    state["scraper_logs"] = state.get("scraper_logs", "") + f"**{venue_name} (Manual Text)**:\n" + parser_log + "\n\n"
+                    if dynamic_times is not None:
+                        venue_info["open_hours"] = dynamic_times
+                        print(f"    [Success] Injected parsed manual times for {venue_name}")
+                elif "scrape_url" in venue_info and venue_info["scrape_url"]:
                     url = venue_info["scrape_url"]
                     print(f"    [Scraper] Fetching dynamic times for {venue_name}...")
                     dynamic_times, scraper_log = fetch_ice_rink_schedule(url)
@@ -80,7 +87,7 @@ def retrieve_constraints(state: AgentState):
                         
     except Exception as e:
         print(f"    [Error] Failed to load constraints: {e}")
-    return {"constraints": constraints}
+    return {"constraints": constraints, "scraper_logs": state.get("scraper_logs", "")}
 
 def generate_plan(state: AgentState):
     print("--> Generating plan...")
