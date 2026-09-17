@@ -12,6 +12,8 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [scrapeUrl, setScrapeUrl] = useState('https://anc.ca.apm.activecommunities.com/activewaterloo/activity/search?onlineSiteId=0&activity_select_param=2&activity_category_ids=35&viewMode=list');
+  const [activityFilter, setActivityFilter] = useState('');
+  const [weekFilter, setWeekFilter] = useState('This Week');
   const [manualTimesText, setManualTimesText] = useState('');
   const [userIntent, setUserIntent] = useState('');
   const [fixedEvents, setFixedEvents] = useState([]);
@@ -124,7 +126,9 @@ function App() {
       const res = await axios.post(`${API_URL}/api/check_venue_times`, {
         scrape_url: scrapeUrl,
         manual_times: manualTimesText,
-        gemini_api_key: apiKey // It's optional on the backend now
+        gemini_api_key: apiKey, // It's optional on the backend now
+        activity_filter: activityFilter,
+        week_filter: weekFilter
       });
       setVenueTimes(res.data.times);
     } catch (err) {
@@ -174,6 +178,24 @@ function App() {
               onChange={(e) => setScrapeUrl(e.target.value)}
               placeholder="Paste ActiveNet URL here..."
             />
+            <div className="flex gap-4 mt-2">
+              <input
+                type="text"
+                style={{ flex: 1 }}
+                value={activityFilter}
+                onChange={(e) => setActivityFilter(e.target.value)}
+                placeholder="Activity Filter (e.g., Adult Skate)"
+              />
+              <select
+                style={{ flex: 1, padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px' }}
+                value={weekFilter}
+                onChange={(e) => setWeekFilter(e.target.value)}
+              >
+                <option value="All Time">All Time</option>
+                <option value="This Week">This Week</option>
+                <option value="Next Week">Next Week</option>
+              </select>
+            </div>
           </div>
 
           {venueTimes && (

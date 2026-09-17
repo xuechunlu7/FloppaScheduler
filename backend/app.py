@@ -32,6 +32,8 @@ class CheckVenueRequest(BaseModel):
     scrape_url: str = ""
     manual_times: str = ""
     gemini_api_key: str = ""
+    activity_filter: str = ""
+    week_filter: str = "All Time"
 
 @app.post("/api/parse_image")
 async def parse_image(
@@ -115,7 +117,12 @@ def check_venue_times(request: CheckVenueRequest):
         elif request.scrape_url:
             if "anc.ca.apm.activecommunities.com" in request.scrape_url:
                 # Pass format_with_llm=False to skip Gemini and do manual grouping
-                dynamic_times, log = fetch_activenet_schedule(request.scrape_url, format_with_llm=False)
+                dynamic_times, log = fetch_activenet_schedule(
+                    request.scrape_url, 
+                    format_with_llm=False,
+                    activity_filter=request.activity_filter,
+                    week_filter=request.week_filter
+                )
             else:
                 dynamic_times, log = fetch_ice_rink_schedule(request.scrape_url)
         else:

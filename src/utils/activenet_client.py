@@ -2,6 +2,7 @@ import json
 import urllib.parse
 import re
 import requests
+from datetime import datetime, timedelta
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -11,7 +12,7 @@ from typing import Dict, List
 class SkateTimes(BaseModel):
     available_times: Dict[str, List[str]] = Field(description="Dictionary mapping day of week (e.g., 'Monday', 'Tuesday') to a list of available time slots (e.g., ['14:00-16:00']).")
 
-def fetch_activenet_schedule(url: str, format_with_llm: bool = True) -> tuple[dict, str]:
+def fetch_activenet_schedule(url: str, format_with_llm: bool = True, activity_filter: str = "", week_filter: str = "All Time") -> tuple[dict, str]:
     print(f"    [ActiveNet API] Parsing URL: {url}")
     parsed = urllib.parse.urlparse(url)
     
@@ -22,7 +23,22 @@ def fetch_activenet_schedule(url: str, format_with_llm: bool = True) -> tuple[di
     # Extract query params
     qs = urllib.parse.parse_qs(parsed.query)
     category_ids = qs.get("activity_category_ids", [])
-    keyword = qs.get("activity_keyword", [""])[0]
+    keyword = activity_filter if activity_filter else qs.get("activity_keyword", [""])[0]
+    
+    # Calculate Date Filters
+    date_before_str = ""
+    date_after_str = ""
+    if week_filter in ["This Week", "Next Week"]:
+        today = datetime.now()
+        if week_filter == "This Week":
+            mon = today + timedelta(days=-today.weekday())
+            sun = mon + timedelta(days=6)
+        else: # Next Week
+            mon = today + timedelta(days=-today.weekday() + 7)
+            sun = mon + timedelta(days=6)
+            
+        date_after_str = mon.strftime('%Y-%m-%d')
+        date_before_str = sun.strftime('%Y-%m-%d')
     
     api_url = f"https://anc.ca.apm.activecommunities.com/{org_name}/rest/activities/list?locale=en-US"
     
@@ -38,7 +54,7 @@ def fetch_activenet_schedule(url: str, format_with_llm: bool = True) -> tuple[di
         "activity_search_pattern": {
             "skills": [], "time_after_str": "", "days_of_week": None, "activity_select_param": 2, 
             "center_ids": [], "time_before_str": "", "open_spots": None, "activity_id": None, 
-            "activity_category_ids": category_ids, "date_before": "", "min_age": None, "date_after": "", 
+            "activity_category_ids": category_ids, "date_before": date_before_str, "min_age": None, "date_after": date_after_str, 
             "activity_type_ids": [], "site_ids": [], "for_map": False, "geographic_area_ids": [], 
             "season_ids": [], "activity_department_ids": [], "activity_other_category_ids": [], 
             "child_season_ids": [], "activity_keyword": keyword, "instructor_ids": [], "max_age": None, 
