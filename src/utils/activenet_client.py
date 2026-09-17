@@ -84,7 +84,8 @@ def fetch_activenet_schedule(url: str, format_with_llm: bool = True, activity_fi
                 "name": item.get("name"),
                 "date_range": item.get("date_range"),
                 "time_range": item.get("time_range"),
-                "days_of_week": item.get("days_of_week")
+                "days_of_week": item.get("days_of_week"),
+                "location": item.get("location", {}).get("label", "")
             })
             
         if not format_with_llm:
@@ -103,8 +104,10 @@ def fetch_activenet_schedule(url: str, format_with_llm: bool = True, activity_fi
                 time_str = item["time_range"]
                 name = item["name"]
                 
-                # We can store it as "Name: Time" so the UI displays both nicely
-                entry = f"{name}: {time_str}"
+                # We can store it as "Name: Time" so the UI displays both nicely, prepending the city
+                location_label = item.get("location", "")
+                loc_str = f" @ {location_label}" if location_label else ""
+                entry = f"[{org_name}] {name}{loc_str}: {time_str}"
                 
                 if full_day not in manual_times:
                     manual_times[full_day] = []
