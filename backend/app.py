@@ -1,7 +1,9 @@
 import os
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
+from typing import List, Optional, Dict, Any
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+import uvicorn
 import json
 import tempfile
 import base64
@@ -28,7 +30,12 @@ class GenerateRequest(BaseModel):
     constraints: dict
     gemini_api_key: str
 
+class VenueSource(BaseModel):
+    url: str
+    activity_filter: str
+
 class CheckVenueRequest(BaseModel):
+    sources: List[VenueSource] = Field(default_factory=list)
     scrape_url: str = ""
     manual_times: str = ""
     gemini_api_key: str = ""
@@ -110,7 +117,26 @@ def check_venue_times(request: CheckVenueRequest):
         dynamic_times = None
         log = ""
         
-        if request.manual_times:
+        if request.sources:
+            # Multi-city mode
+            merged_times = {}
+            for source in request.sources:
+                if "anc.ca.apm.activecommunities.com" in source.url:
+                    times, source_log = fetch_activenet_schedule(
+                        source.url,
+                        format_with_llm=False,
+                        activity_filter=source.activity_filter,
+                        week_filter=request.week_filter
+                    )
+                    # times is a dict: {"Monday": ["..."], "Tuesday": ["..."]}
+                    for day, events in times.items():
+                        if day not in merged_times:
+                            merged_times[day] = []
+                        merged_times[day].extend(events)
+                    log += source_log + "\n"
+            dynamic_times = merged_times
+            
+        elif request.manual_times:
             # Note: parsing manual times might still require LLM if parse_ice_rink_schedule uses it.
             # But the user asked for URL fetching to be free.
             dynamic_times, log = parse_ice_rink_schedule(request.manual_times)
