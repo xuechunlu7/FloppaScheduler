@@ -11,8 +11,9 @@ const API_URL = import.meta.env.DEV ? 'http://localhost:8000' : 'https://floppas
 function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [apiKey, setApiKey] = useState('');
-  const [scrapeUrl, setScrapeUrl] = useState('https://anc.ca.apm.activecommunities.com/activewaterloo/activity/search?onlineSiteId=0&activity_select_param=2&activity_category_ids=35&viewMode=list');
-  const [activityFilter, setActivityFilter] = useState('');
+  const [sources, setSources] = useState([
+    { url: 'https://anc.ca.apm.activecommunities.com/activewaterloo/activity/search?onlineSiteId=0&activity_select_param=2&activity_category_ids=35&viewMode=list', filter: '' }
+  ]);
   const [weekFilter, setWeekFilter] = useState('This Week');
   const [manualTimesText, setManualTimesText] = useState('');
   const [userIntent, setUserIntent] = useState('');
@@ -32,8 +33,8 @@ function App() {
     if (savedKey) setApiKey(savedKey);
     else setShowSettings(true); // Prompt for key if not found
 
-    const savedUrl = localStorage.getItem('scrape_url');
-    if (savedUrl) setScrapeUrl(savedUrl);
+    const savedSources = localStorage.getItem('venue_sources');
+    if (savedSources) setSources(JSON.parse(savedSources));
 
     const savedManual = localStorage.getItem('manual_times_text');
     if (savedManual) setManualTimesText(savedManual);
@@ -44,7 +45,7 @@ function App() {
 
   const saveSettings = () => {
     localStorage.setItem('gemini_api_key', apiKey);
-    localStorage.setItem('scrape_url', scrapeUrl);
+    localStorage.setItem('venue_sources', JSON.stringify(sources));
     localStorage.setItem('manual_times_text', manualTimesText);
     setShowSettings(false);
   };
@@ -94,7 +95,7 @@ function App() {
       fixed_schedule: fixedEvents,
       venues: {
         ice_rink: {
-          scrape_url: scrapeUrl,
+          scrape_url: sources[0]?.url || "",
           manual_times: manualTimesText,
           open_hours: {},
           reservation_required: true,
@@ -124,10 +125,10 @@ function App() {
 
     try {
       const res = await axios.post(`${API_URL}/api/check_venue_times`, {
-        scrape_url: scrapeUrl,
+        sources: sources,
+        scrape_url: sources[0]?.url || "",
         manual_times: manualTimesText,
         gemini_api_key: apiKey, // It's optional on the backend now
-        activity_filter: activityFilter,
         week_filter: weekFilter
       });
       setVenueTimes(res.data.times);
@@ -171,23 +172,58 @@ function App() {
             </button>
           </div>
 
-          <div className="flex-col gap-2">
-            <input
-              type="text"
-              value={scrapeUrl}
-              onChange={(e) => setScrapeUrl(e.target.value)}
-              placeholder="Paste ActiveNet URL here..."
-            />
-            <div className="flex gap-4 mt-2">
-              <input
-                type="text"
-                style={{ flex: 1 }}
-                value={activityFilter}
-                onChange={(e) => setActivityFilter(e.target.value)}
-                placeholder="Activity Filter (e.g., Adult Skate)"
-              />
+          <div className="flex-col gap-4">
+            {sources.map((source, index) => (
+              <div key={index} className="flex gap-2 items-center mb-2" style={{ background: 'rgba(0,0,0,0.2)', padding: '0.5rem', borderRadius: '4px' }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <input
+                    type="text"
+                    value={source.url}
+                    onChange={(e) => {
+                      const newSources = [...sources];
+                      newSources[index].url = e.target.value;
+                      setSources(newSources);
+                    }}
+                    placeholder="Paste ActiveNet URL here..."
+                  />
+                  <input
+                    type="text"
+                    value={source.filter}
+                    onChange={(e) => {
+                      const newSources = [...sources];
+                      newSources[index].filter = e.target.value;
+                      setSources(newSources);
+                    }}
+                    placeholder="Activity Filter (e.g., Adult Skate)"
+                  />
+                </div>
+                {sources.length > 1 && (
+                  <button 
+                    className="secondary" 
+                    style={{ padding: '1rem', color: 'var(--error)' }}
+                    onClick={() => {
+                      const newSources = [...sources];
+                      newSources.splice(index, 1);
+                      setSources(newSources);
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+            
+            <div className="flex justify-between items-center mt-2">
+              <button 
+                className="secondary"
+                style={{ border: '1px dashed rgba(255,255,255,0.2)', background: 'transparent' }}
+                onClick={() => setSources([...sources, { url: '', filter: '' }])}
+              >
+                + Add Another City
+              </button>
+              
               <select
-                style={{ flex: 1, padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px' }}
+                style={{ width: '200px', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px' }}
                 value={weekFilter}
                 onChange={(e) => setWeekFilter(e.target.value)}
               >
