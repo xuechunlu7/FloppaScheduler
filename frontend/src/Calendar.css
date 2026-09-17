@@ -108,3 +108,13 @@
   border-left: 3px solid var(--success);
   color: #d1fae5;
 }
+
+/* Today Highlighting */
+.today-header {
+  color: var(--primary);
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.today-column {
+  background-color: rgba(56, 189, 248, 0.03);
+}

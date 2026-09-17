@@ -11,7 +11,24 @@ const parseTime = (timeStr) => {
   return hours + mins / 60;
 };
 
-const CalendarGrid = ({ events = [] }) => {
+const CalendarGrid = ({ events = [], currentDate = new Date() }) => {
+  const getWeekRange = (date) => {
+    const start = new Date(date);
+    const day = start.getDay();
+    const diff = start.getDate() - day + (day === 0 ? -6 : 1);
+    start.setDate(diff);
+    return start;
+  };
+  const weekStart = getWeekRange(currentDate);
+  const today = new Date();
+  
+  const getDayInfo = (index) => {
+    const d = new Date(weekStart);
+    d.setDate(d.getDate() + index);
+    const isToday = d.toDateString() === today.toDateString();
+    return { date: d.getDate(), isToday };
+  };
+
   // Generate time labels (e.g., "08:00", "09:00")
   const timeLabels = [];
   for (let i = START_HOUR; i < END_HOUR; i++) {
@@ -34,9 +51,15 @@ const CalendarGrid = ({ events = [] }) => {
     <div className="calendar-container">
       <div className="calendar-header">
         <div className="calendar-header-cell">Time</div>
-        {DAYS.map(day => (
-          <div key={day} className="calendar-header-cell">{day.substring(0, 3)}</div>
-        ))}
+        {DAYS.map((day, idx) => {
+          const { date, isToday } = getDayInfo(idx);
+          return (
+            <div key={day} className={`calendar-header-cell ${isToday ? 'today-header' : ''}`}>
+              <div>{day.substring(0, 3)}</div>
+              <div style={{ fontSize: '1.2rem', marginTop: '0.2rem' }}>{date}</div>
+            </div>
+          );
+        })}
       </div>
       
       <div className="calendar-body">
@@ -48,8 +71,10 @@ const CalendarGrid = ({ events = [] }) => {
         </div>
 
         {/* Day Columns */}
-        {DAYS.map((day, dayIdx) => (
-          <div key={day} className="day-column" style={{ gridColumn: dayIdx + 2, gridRow: `1 / span ${TOTAL_HOURS * 2}` }}>
+        {DAYS.map((day, dayIdx) => {
+          const { isToday } = getDayInfo(dayIdx);
+          return (
+          <div key={day} className={`day-column ${isToday ? 'today-column' : ''}`} style={{ gridColumn: dayIdx + 2, gridRow: `1 / span ${TOTAL_HOURS * 2}` }}>
             {eventsByDay[day].map((event, idx) => {
               const startT = parseTime(event.start_time);
               const endT = parseTime(event.end_time);
@@ -79,7 +104,8 @@ const CalendarGrid = ({ events = [] }) => {
               );
             })}
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

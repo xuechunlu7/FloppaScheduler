@@ -12,7 +12,7 @@ from typing import Dict, List
 class SkateTimes(BaseModel):
     available_times: Dict[str, List[str]] = Field(description="Dictionary mapping day of week (e.g., 'Monday', 'Tuesday') to a list of available time slots (e.g., ['14:00-16:00']).")
 
-def fetch_activenet_schedule(url: str, format_with_llm: bool = True, activity_filter: str = "", week_filter: str = "All Time") -> tuple[dict, str]:
+def fetch_activenet_schedule(url: str, format_with_llm: bool = True, activity_filter: str = "", date_start: str = "", date_end: str = "") -> tuple[dict, str]:
     print(f"    [ActiveNet API] Parsing URL: {url}")
     parsed = urllib.parse.urlparse(url)
     
@@ -25,20 +25,9 @@ def fetch_activenet_schedule(url: str, format_with_llm: bool = True, activity_fi
     category_ids = qs.get("activity_category_ids", [])
     keyword = activity_filter if activity_filter else qs.get("activity_keyword", [""])[0]
     
-    # Calculate Date Filters
-    date_before_str = ""
-    date_after_str = ""
-    if week_filter in ["This Week", "Next Week"]:
-        today = datetime.now()
-        if week_filter == "This Week":
-            mon = today + timedelta(days=-today.weekday())
-            sun = mon + timedelta(days=6)
-        else: # Next Week
-            mon = today + timedelta(days=-today.weekday() + 7)
-            sun = mon + timedelta(days=6)
-            
-        date_after_str = mon.strftime('%Y-%m-%d')
-        date_before_str = sun.strftime('%Y-%m-%d')
+    # Use explicit dates provided by frontend
+    date_after_str = date_start
+    date_before_str = date_end
     
     api_url = f"https://anc.ca.apm.activecommunities.com/{org_name}/rest/activities/list?locale=en-US"
     

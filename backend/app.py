@@ -40,7 +40,8 @@ class CheckVenueRequest(BaseModel):
     manual_times: str = ""
     gemini_api_key: str = ""
     activity_filter: str = ""
-    week_filter: str = "All Time"
+    date_start: str = ""
+    date_end: str = ""
 
 @app.post("/api/parse_image")
 async def parse_image(
@@ -126,7 +127,8 @@ def check_venue_times(request: CheckVenueRequest):
                         source.url,
                         format_with_llm=False,
                         activity_filter=source.activity_filter,
-                        week_filter=request.week_filter
+                        date_start=request.date_start,
+                        date_end=request.date_end
                     )
                     # times is a dict: {"Monday": ["..."], "Tuesday": ["..."]}
                     for day, events in times.items():

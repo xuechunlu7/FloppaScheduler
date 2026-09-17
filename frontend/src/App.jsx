@@ -58,7 +58,7 @@ function App() {
   const [sources, setSources] = useState([
     { url: 'https://anc.ca.apm.activecommunities.com/activewaterloo/activity/search?onlineSiteId=0&activity_select_param=2&activity_category_ids=35&viewMode=list', activity_filter: '' }
   ]);
-  const [weekFilter, setWeekFilter] = useState('This Week');
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [manualTimesText, setManualTimesText] = useState('');
   const [userIntent, setUserIntent] = useState('');
   const [fixedEvents, setFixedEvents] = useState([]);
@@ -162,6 +162,29 @@ function App() {
     }
   };
 
+
+  const getWeekRange = (date) => {
+    const start = new Date(date);
+    const day = start.getDay();
+    const diff = start.getDate() - day + (day === 0 ? -6 : 1);
+    start.setDate(diff);
+    
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    
+    return { start, end };
+  };
+
+  const { start: weekStart, end: weekEnd } = getWeekRange(currentDate);
+  const weekLabel = `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+  
+  const formatDateForApi = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const checkVenueTimes = async () => {
     setIsFetchingTimes(true);
     setError('');
@@ -172,8 +195,9 @@ function App() {
         sources: sources,
         scrape_url: sources[0]?.url || "",
         manual_times: manualTimesText,
-        gemini_api_key: apiKey, // It's optional on the backend now
-        week_filter: weekFilter
+        gemini_api_key: apiKey,
+        date_start: formatDateForApi(weekStart),
+        date_end: formatDateForApi(weekEnd)
       });
       setVenueTimes(res.data.times);
     } catch (err) {
@@ -266,21 +290,17 @@ function App() {
                 + Add Another City
               </button>
               
-              <select
-                style={{ width: '200px', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px' }}
-                value={weekFilter}
-                onChange={(e) => setWeekFilter(e.target.value)}
-              >
-                <option value="All Time">All Time</option>
-                <option value="This Week">This Week</option>
-                <option value="Next Week">Next Week</option>
-              </select>
+              <div className="flex items-center gap-4" style={{ background: 'rgba(255,255,255,0.05)', padding: '0.4rem 0.8rem', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <button className="secondary" style={{ padding: '0.2rem 0.5rem', background: 'transparent' }} onClick={() => { const d = new Date(currentDate); d.setDate(d.getDate() - 7); setCurrentDate(d); }}>&lt;</button>
+                <span style={{ minWidth: '150px', textAlign: 'center', fontWeight: 'bold' }}>{weekLabel}</span>
+                <button className="secondary" style={{ padding: '0.2rem 0.5rem', background: 'transparent' }} onClick={() => { const d = new Date(currentDate); d.setDate(d.getDate() + 7); setCurrentDate(d); }}>&gt;</button>
+              </div>
             </div>
           </div>
 
           {venueTimes && (
             <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-              <CalendarGrid events={parseVenueTimesToEvents(venueTimes)} />
+              <CalendarGrid events={parseVenueTimesToEvents(venueTimes)} currentDate={currentDate} />
             </div>
           )}
         </div>
