@@ -8,6 +8,50 @@ import './index.css';
 // Automatically use local backend in development, Render backend in production
 const API_URL = import.meta.env.DEV ? 'http://localhost:8000' : 'https://floppascheduler.onrender.com';
 
+
+function parseVenueTimesToEvents(venueTimes) {
+  const events = [];
+  if (!venueTimes) return events;
+  
+  Object.entries(venueTimes).forEach(([day, times]) => {
+    times.forEach((t) => {
+      // e.g., "[activewaterloo] Adult Skate @ RIM Park: Noon - 12:50 PM"
+      const match = t.match(/^\[(.*?)\] (.*?): (.*?) - (.*)$/);
+      if (match) {
+        const [_, org, title, startStr, endStr] = match;
+        
+        const parsePart = (str) => {
+          str = str.trim().toUpperCase();
+          if (str === "NOON") return "12:00";
+          const parts = str.split(' ');
+          if (parts.length < 2) return "12:00";
+          const [time, period] = parts;
+          let [hours, mins] = time.split(':').map(Number);
+          if (period === 'PM' && hours !== 12) hours += 12;
+          if (period === 'AM' && hours === 12) hours = 0;
+          return `${hours.toString().padStart(2, '0')}:${mins ? mins.toString().padStart(2, '0') : '00'}`;
+        };
+        
+        let start = "12:00";
+        let end = "13:00";
+        try {
+          start = parsePart(startStr);
+          end = parsePart(endStr);
+        } catch(e) {}
+        
+        events.push({
+          title: `[${org}] ${title}`,
+          start_time: start,
+          end_time: end,
+          day_of_week: day,
+          event_type: org.includes('kitchener') ? 'recovery' : 'additional'
+        });
+      }
+    });
+  });
+  return events;
+}
+
 function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [apiKey, setApiKey] = useState('');
@@ -236,22 +280,7 @@ function App() {
 
           {venueTimes && (
             <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
-                {Object.entries(venueTimes).map(([day, times]) => (
-                  <div key={day} style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1rem', borderRadius: '8px' }}>
-                    <h4 style={{ color: 'var(--primary)', marginBottom: '0.5rem' }}>{day}</h4>
-                    {times.length > 0 ? (
-                      <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
-                        {times.map((t, idx) => (
-                          <li key={idx} style={{ marginBottom: '0.25rem', fontFamily: 'monospace' }}>{t}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.9rem' }}>Closed / No spots</p>
-                    )}
-                  </div>
-                ))}
-              </div>
+              <CalendarGrid events={parseVenueTimesToEvents(venueTimes)} />
             </div>
           )}
         </div>
