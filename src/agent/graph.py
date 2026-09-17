@@ -7,6 +7,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from src.agent.state import AgentState, ParsedIntent
 from src.utils.scraper import fetch_ice_rink_schedule, parse_ice_rink_schedule
+from src.utils.activenet_client import fetch_activenet_schedule
 from pydantic import BaseModel, Field
 from typing import List
 
@@ -78,8 +79,13 @@ def retrieve_constraints(state: AgentState):
                         print(f"    [Success] Injected parsed manual times for {venue_name}")
                 elif "scrape_url" in venue_info and venue_info["scrape_url"]:
                     url = venue_info["scrape_url"]
-                    print(f"    [Scraper] Fetching dynamic times for {venue_name}...")
-                    dynamic_times, scraper_log = fetch_ice_rink_schedule(url)
+                    if "anc.ca.apm.activecommunities.com" in url:
+                        print(f"    [ActiveNet API] Fetching times for {venue_name} via JSON API...")
+                        dynamic_times, scraper_log = fetch_activenet_schedule(url)
+                    else:
+                        print(f"    [Scraper] Fetching dynamic times for {venue_name} via Playwright...")
+                        dynamic_times, scraper_log = fetch_ice_rink_schedule(url)
+                        
                     state["scraper_logs"] = state.get("scraper_logs", "") + f"**{venue_name}**:\n" + scraper_log + "\n\n"
                     if dynamic_times is not None:
                         venue_info["open_hours"] = dynamic_times

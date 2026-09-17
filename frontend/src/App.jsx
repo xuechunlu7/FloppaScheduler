@@ -11,6 +11,7 @@ const API_URL = import.meta.env.DEV ? 'http://localhost:8000' : 'https://floppas
 function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [apiKey, setApiKey] = useState('');
+  const [scrapeUrl, setScrapeUrl] = useState('https://anc.ca.apm.activecommunities.com/activewaterloo/activity/search?onlineSiteId=0&activity_select_param=2&activity_category_ids=35&viewMode=list');
   const [manualTimesText, setManualTimesText] = useState('');
   const [userIntent, setUserIntent] = useState('');
   const [fixedEvents, setFixedEvents] = useState([]);
@@ -27,6 +28,9 @@ function App() {
     if (savedKey) setApiKey(savedKey);
     else setShowSettings(true); // Prompt for key if not found
 
+    const savedUrl = localStorage.getItem('scrape_url');
+    if (savedUrl) setScrapeUrl(savedUrl);
+
     const savedManual = localStorage.getItem('manual_times_text');
     if (savedManual) setManualTimesText(savedManual);
 
@@ -36,6 +40,7 @@ function App() {
 
   const saveSettings = () => {
     localStorage.setItem('gemini_api_key', apiKey);
+    localStorage.setItem('scrape_url', scrapeUrl);
     localStorage.setItem('manual_times_text', manualTimesText);
     setShowSettings(false);
   };
@@ -85,6 +90,7 @@ function App() {
       fixed_schedule: fixedEvents,
       venues: {
         ice_rink: {
+          scrape_url: scrapeUrl,
           manual_times: manualTimesText,
           open_hours: {},
           reservation_required: true,
@@ -214,7 +220,16 @@ function App() {
               />
             </div>
             <div className="flex-col gap-2 mt-4">
-              <label>Ice Rink Schedule (Manual Text)</label>
+              <label>Ice Rink URL (ActiveNet Auto-Fetch)</label>
+              <input
+                type="text"
+                value={scrapeUrl}
+                onChange={(e) => setScrapeUrl(e.target.value)}
+                placeholder="https://anc.ca.apm..."
+              />
+            </div>
+            <div className="flex-col gap-2 mt-4">
+              <label>OR: Ice Rink Schedule (Manual Text Fallback)</label>
               <textarea
                 rows="4"
                 value={manualTimesText}
