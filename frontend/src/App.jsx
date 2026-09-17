@@ -17,7 +17,9 @@ function App() {
   const [fixedEvents, setFixedEvents] = useState([]);
   const [isParsing, setIsParsing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isFetchingTimes, setIsFetchingTimes] = useState(false);
   const [result, setResult] = useState(null);
+  const [venueTimes, setVenueTimes] = useState(null);
   const [error, setError] = useState('');
 
   const fileInputRef = useRef(null);
@@ -113,6 +115,29 @@ function App() {
     }
   };
 
+  const checkVenueTimes = async () => {
+    if (!apiKey) {
+      setShowSettings(true);
+      return;
+    }
+    setIsFetchingTimes(true);
+    setError('');
+    setVenueTimes(null);
+
+    try {
+      const res = await axios.post(`${API_URL}/api/check_venue_times`, {
+        scrape_url: scrapeUrl,
+        manual_times: manualTimesText,
+        gemini_api_key: apiKey
+      });
+      setVenueTimes(res.data.times);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to fetch venue times');
+    } finally {
+      setIsFetchingTimes(false);
+    }
+  };
+
   return (
     <div className="app-container">
       <header className="flex justify-between items-center mb-8">
@@ -173,15 +198,47 @@ function App() {
             onChange={(e) => setUserIntent(e.target.value)}
           ></textarea>
 
-          <button
-            className="mt-4 flex items-center gap-2"
-            style={{ width: '100%', justifyContent: 'center', padding: '1rem', fontSize: '1.2rem' }}
-            onClick={generateSchedule}
-            disabled={isGenerating || !userIntent.trim()}
-          >
-            <Sparkles /> {isGenerating ? 'Thinking...' : 'Generate Perfect Schedule'}
-          </button>
+          <div className="flex gap-4 mt-4">
+            <button
+              className="flex items-center gap-2"
+              style={{ flex: 1, justifyContent: 'center', padding: '1rem', fontSize: '1.2rem' }}
+              onClick={generateSchedule}
+              disabled={isGenerating || !userIntent.trim()}
+            >
+              <Sparkles /> {isGenerating ? 'Thinking...' : 'Generate Perfect Schedule'}
+            </button>
+            <button
+              className="secondary flex items-center gap-2"
+              style={{ padding: '1rem', fontSize: '1.2rem', background: 'rgba(255, 255, 255, 0.05)' }}
+              onClick={checkVenueTimes}
+              disabled={isFetchingTimes}
+            >
+              🔍 {isFetchingTimes ? 'Fetching...' : 'Check Venue Times Only'}
+            </button>
+          </div>
         </div>
+
+        {venueTimes && (
+          <div className="glass-panel" id="venue-times-view" style={{ borderColor: 'var(--primary)' }}>
+            <h2>Ice Rink Available Times</h2>
+            <div className="mt-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
+              {Object.entries(venueTimes).map(([day, times]) => (
+                <div key={day} style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1rem', borderRadius: '8px' }}>
+                  <h4 style={{ color: 'var(--primary)', marginBottom: '0.5rem' }}>{day}</h4>
+                  {times.length > 0 ? (
+                    <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
+                      {times.map((t, idx) => (
+                        <li key={idx} style={{ marginBottom: '0.25rem', fontFamily: 'monospace' }}>{t}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.9rem' }}>Closed / No spots</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {result && (
           <div className="glass-panel" id="result-view">

@@ -9,6 +9,8 @@ import base64
 # Import our existing utilities
 from src.agent.graph import graph
 from src.utils.vision_parser import extract_schedule_from_image
+from src.utils.scraper import fetch_ice_rink_schedule, parse_ice_rink_schedule
+from src.utils.activenet_client import fetch_activenet_schedule
 
 app = FastAPI(title="FloppaScheduler API")
 
@@ -24,6 +26,11 @@ app.add_middleware(
 class GenerateRequest(BaseModel):
     user_intent: str
     constraints: dict
+    gemini_api_key: str
+
+class CheckVenueRequest(BaseModel):
+    scrape_url: str = ""
+    manual_times: str = ""
     gemini_api_key: str
 
 @app.post("/api/parse_image")
@@ -84,6 +91,38 @@ def generate_schedule(request: GenerateRequest):
         return {
             "schedule_plan": result.get("schedule", ""),
             "evaluation": result.get("evaluation", "")
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/check_venue_times")
+def check_venue_times(request: CheckVenueRequest):
+    """
+    Lightweight endpoint to fetch venue times without generating a schedule.
+    """
+    if not request.gemini_api_key:
+        raise HTTPException(status_code=400, detail="Gemini API Key is required")
+        
+    os.environ["GEMINI_API_KEY"] = request.gemini_api_key
+    os.environ["GOOGLE_API_KEY"] = request.gemini_api_key
+    
+    try:
+        dynamic_times = None
+        log = ""
+        
+        if request.manual_times:
+            dynamic_times, log = parse_ice_rink_schedule(request.manual_times)
+        elif request.scrape_url:
+            if "anc.ca.apm.activecommunities.com" in request.scrape_url:
+                dynamic_times, log = fetch_activenet_schedule(request.scrape_url)
+            else:
+                dynamic_times, log = fetch_ice_rink_schedule(request.scrape_url)
+        else:
+            raise HTTPException(status_code=400, detail="Must provide either scrape_url or manual_times")
+            
+        return {
+            "times": dynamic_times,
+            "log": log
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
