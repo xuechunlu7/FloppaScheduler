@@ -52,11 +52,19 @@ function parseVenueTimesToEvents(venueTimes) {
   return events;
 }
 
+
+const CITY_PRESETS = [
+  { label: "Waterloo - Adult Skate", url: "https://anc.ca.apm.activecommunities.com/activewaterloo/activity/search?onlineSiteId=0&activity_select_param=2&activity_category_ids=35&viewMode=list", filter: "Adult" },
+  { label: "Waterloo - Public Skate", url: "https://anc.ca.apm.activecommunities.com/activewaterloo/activity/search?onlineSiteId=0&activity_select_param=2&activity_category_ids=35&viewMode=list", filter: "Public Skate" },
+  { label: "Kitchener - Free Skate", url: "https://anc.ca.apm.activecommunities.com/activekitchener/activity/search?onlineSiteId=0&locale=en-US&activity_select_param=2&activity_category_ids=35&viewMode=list", filter: "Free Skate" },
+  { label: "Kitchener - Public Skate", url: "https://anc.ca.apm.activecommunities.com/activekitchener/activity/search?onlineSiteId=0&locale=en-US&activity_select_param=2&activity_category_ids=35&viewMode=list", filter: "Public Skate" },
+];
+
 function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [sources, setSources] = useState([
-    { url: 'https://anc.ca.apm.activecommunities.com/activewaterloo/activity/search?onlineSiteId=0&activity_select_param=2&activity_category_ids=35&viewMode=list', activity_filter: '' }
+    { preset: CITY_PRESETS[0].label, url: CITY_PRESETS[0].url, activity_filter: CITY_PRESETS[0].filter }
   ]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [manualTimesText, setManualTimesText] = useState('');
@@ -244,26 +252,56 @@ function App() {
             {sources.map((source, index) => (
               <div key={index} className="flex gap-2 items-center mb-2" style={{ background: 'rgba(0,0,0,0.2)', padding: '0.5rem', borderRadius: '4px' }}>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <input
-                    type="text"
-                    value={source.url}
+                  <select
+                    style={{ padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', width: '100%' }}
+                    value={source.preset || 'Custom'}
                     onChange={(e) => {
                       const newSources = [...sources];
-                      newSources[index].url = e.target.value;
+                      const val = e.target.value;
+                      newSources[index].preset = val;
+                      if (val !== 'Custom') {
+                        const matched = CITY_PRESETS.find(p => p.label === val);
+                        if (matched) {
+                          newSources[index].url = matched.url;
+                          newSources[index].activity_filter = matched.filter;
+                        }
+                      } else {
+                        newSources[index].url = '';
+                        newSources[index].activity_filter = '';
+                      }
                       setSources(newSources);
                     }}
-                    placeholder="Paste ActiveNet URL here..."
-                  />
-                  <input
-                    type="text"
-                    value={source.activity_filter}
-                    onChange={(e) => {
-                      const newSources = [...sources];
-                      newSources[index].activity_filter = e.target.value;
-                      setSources(newSources);
-                    }}
-                    placeholder="Activity Filter (e.g., Adult Skate)"
-                  />
+                  >
+                    {CITY_PRESETS.map((p, i) => (
+                      <option key={i} value={p.label}>{p.label}</option>
+                    ))}
+                    <option value="Custom">Custom / Other City...</option>
+                  </select>
+                  
+                  {source.preset === 'Custom' && (
+                    <>
+                      <input
+                        type="text"
+                        value={source.url}
+                        onChange={(e) => {
+                          const newSources = [...sources];
+                          newSources[index].url = e.target.value;
+                          setSources(newSources);
+                        }}
+                        placeholder="Paste ActiveNet URL here..."
+                      />
+                      <input
+                        type="text"
+                        value={source.activity_filter}
+                        onChange={(e) => {
+                          const newSources = [...sources];
+                          newSources[index].activity_filter = e.target.value;
+                          setSources(newSources);
+                        }}
+                        placeholder="Activity Keyword (e.g., Adult Skate)"
+                      />
+                    </>
+                  )}
                 </div>
                 {sources.length > 1 && (
                   <button 
@@ -285,7 +323,7 @@ function App() {
               <button 
                 className="secondary"
                 style={{ border: '1px dashed rgba(255,255,255,0.2)', background: 'transparent' }}
-                onClick={() => setSources([...sources, { url: '', activity_filter: '' }])}
+                onClick={() => setSources([...sources, { preset: CITY_PRESETS[0].label, url: CITY_PRESETS[0].url, activity_filter: CITY_PRESETS[0].filter }])}
               >
                 + Add Another City
               </button>
