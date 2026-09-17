@@ -11,7 +11,7 @@ from typing import Dict, List
 class SkateTimes(BaseModel):
     available_times: Dict[str, List[str]] = Field(description="Dictionary mapping day of week (e.g., 'Monday', 'Tuesday') to a list of available time slots (e.g., ['14:00-16:00']).")
 
-def fetch_activenet_schedule(url: str) -> tuple[dict, str]:
+def fetch_activenet_schedule(url: str, format_with_llm: bool = True) -> tuple[dict, str]:
     print(f"    [ActiveNet API] Parsing URL: {url}")
     parsed = urllib.parse.urlparse(url)
     
@@ -70,6 +70,32 @@ def fetch_activenet_schedule(url: str) -> tuple[dict, str]:
                 "time_range": item.get("time_range"),
                 "days_of_week": item.get("days_of_week")
             })
+            
+        if not format_with_llm:
+            # Manual python formatting for the "Free / No API Key" feature
+            print(f"    [ActiveNet API] Manually formatting {len(clean_schedules)} items...")
+            manual_times = {}
+            day_map = {
+                "Mon": "Monday", "Tue": "Tuesday", "Wed": "Wednesday",
+                "Thu": "Thursday", "Fri": "Friday", "Sat": "Saturday", "Sun": "Sunday"
+            }
+            for item in clean_schedules:
+                day_abbr = item["days_of_week"]
+                # Default to the abbreviation if mapping fails, or Unknown
+                full_day = day_map.get(day_abbr[:3] if day_abbr else "", day_abbr or "Unknown")
+                
+                time_str = item["time_range"]
+                name = item["name"]
+                
+                # We can store it as "Name: Time" so the UI displays both nicely
+                entry = f"{name}: {time_str}"
+                
+                if full_day not in manual_times:
+                    manual_times[full_day] = []
+                manual_times[full_day].append(entry)
+                
+            debug_msg = f"[ActiveNet Success] Fetched {len(items)} items using JSON API (No LLM).\nFormatted Result: {json.dumps(manual_times, indent=2)}"
+            return manual_times, debug_msg
             
         # Format via LLM
         print(f"    [ActiveNet API] Formatting {len(clean_schedules)} items with Gemini...")

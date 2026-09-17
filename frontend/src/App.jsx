@@ -116,10 +116,6 @@ function App() {
   };
 
   const checkVenueTimes = async () => {
-    if (!apiKey) {
-      setShowSettings(true);
-      return;
-    }
     setIsFetchingTimes(true);
     setError('');
     setVenueTimes(null);
@@ -128,7 +124,7 @@ function App() {
       const res = await axios.post(`${API_URL}/api/check_venue_times`, {
         scrape_url: scrapeUrl,
         manual_times: manualTimesText,
-        gemini_api_key: apiKey
+        gemini_api_key: apiKey // It's optional on the backend now
       });
       setVenueTimes(res.data.times);
     } catch (err) {
@@ -155,9 +151,60 @@ function App() {
       )}
 
       <div className="flex flex-col gap-4 mb-8">
+        {/* TOOL 1: ICE RINK TRACKER */}
+        <div className="glass-panel" style={{ border: '2px solid var(--primary)' }}>
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h2 className="flex items-center gap-2"><Sparkles color="var(--primary)" /> Tool 1: Ice Rink Tracker (Free)</h2>
+              <p>Instantly fetch open hours from ActiveNet. No API Key required.</p>
+            </div>
+            <button
+              className="secondary flex items-center gap-2"
+              onClick={checkVenueTimes}
+              disabled={isFetchingTimes}
+            >
+              🔍 {isFetchingTimes ? 'Fetching...' : 'Fetch Times'}
+            </button>
+          </div>
+
+          <div className="flex-col gap-2">
+            <input
+              type="text"
+              value={scrapeUrl}
+              onChange={(e) => setScrapeUrl(e.target.value)}
+              placeholder="Paste ActiveNet URL here..."
+            />
+          </div>
+
+          {venueTimes && (
+            <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
+                {Object.entries(venueTimes).map(([day, times]) => (
+                  <div key={day} style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1rem', borderRadius: '8px' }}>
+                    <h4 style={{ color: 'var(--primary)', marginBottom: '0.5rem' }}>{day}</h4>
+                    {times.length > 0 ? (
+                      <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
+                        {times.map((t, idx) => (
+                          <li key={idx} style={{ marginBottom: '0.25rem', fontFamily: 'monospace' }}>{t}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.9rem' }}>Closed / No spots</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* TOOL 2: AI SCHEDULE GENERATOR */}
         <div className="glass-panel">
-          <h2>1. Extract Fixed Schedule</h2>
-          <p>Upload a screenshot of your calendar (Quest, Notion, etc.) to automatically extract fixed classes.</p>
+          <h2>Tool 2: AI Schedule Generator (Requires Gemini API Key)</h2>
+          <p>Let AI merge your fixed classes, ice time, and personal goals into a perfect schedule.</p>
+          
+          <div className="mt-4">
+            <h4 className="mb-2">A. Extract Fixed Schedule (Optional)</h4>
 
           <div
             className="drop-zone mt-4"
@@ -188,57 +235,28 @@ function App() {
           )}
         </div>
 
-        <div className="glass-panel">
-          <h2>2. Schedule Generation</h2>
-          <p>Tell Floppa what you want to achieve this week.</p>
-          <textarea
-            rows="4"
-            placeholder="e.g. Schedule 3 ice training sessions (50 mins each) and 4 study sessions for Grind 75..."
-            value={userIntent}
-            onChange={(e) => setUserIntent(e.target.value)}
-          ></textarea>
-
-          <div className="flex gap-4 mt-4">
-            <button
-              className="flex items-center gap-2"
-              style={{ flex: 1, justifyContent: 'center', padding: '1rem', fontSize: '1.2rem' }}
-              onClick={generateSchedule}
-              disabled={isGenerating || !userIntent.trim()}
-            >
-              <Sparkles /> {isGenerating ? 'Thinking...' : 'Generate Perfect Schedule'}
-            </button>
-            <button
-              className="secondary flex items-center gap-2"
-              style={{ padding: '1rem', fontSize: '1.2rem', background: 'rgba(255, 255, 255, 0.05)' }}
-              onClick={checkVenueTimes}
-              disabled={isFetchingTimes}
-            >
-              🔍 {isFetchingTimes ? 'Fetching...' : 'Check Venue Times Only'}
-            </button>
           </div>
+
+          <div className="mt-8">
+            <h4 className="mb-2">B. Define Your Goals</h4>
+            <p className="text-muted text-sm mb-2">The scheduler will automatically use the Ice Rink URL from Tool 1 if provided.</p>
+            <textarea
+              rows="4"
+              placeholder="e.g. Schedule 3 ice training sessions (50 mins each) and 4 study sessions for Grind 75..."
+              value={userIntent}
+              onChange={(e) => setUserIntent(e.target.value)}
+            ></textarea>
+          </div>
+
+          <button
+            className="mt-6 flex items-center gap-2"
+            style={{ width: '100%', justifyContent: 'center', padding: '1rem', fontSize: '1.2rem', background: 'var(--primary)' }}
+            onClick={generateSchedule}
+            disabled={isGenerating || !userIntent.trim()}
+          >
+            <Sparkles /> {isGenerating ? 'Thinking...' : 'Generate Perfect Schedule'}
+          </button>
         </div>
-
-        {venueTimes && (
-          <div className="glass-panel" id="venue-times-view" style={{ borderColor: 'var(--primary)' }}>
-            <h2>Ice Rink Available Times</h2>
-            <div className="mt-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
-              {Object.entries(venueTimes).map(([day, times]) => (
-                <div key={day} style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1rem', borderRadius: '8px' }}>
-                  <h4 style={{ color: 'var(--primary)', marginBottom: '0.5rem' }}>{day}</h4>
-                  {times.length > 0 ? (
-                    <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
-                      {times.map((t, idx) => (
-                        <li key={idx} style={{ marginBottom: '0.25rem', fontFamily: 'monospace' }}>{t}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.9rem' }}>Closed / No spots</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {result && (
           <div className="glass-panel" id="result-view">
@@ -277,16 +295,7 @@ function App() {
               />
             </div>
             <div className="flex-col gap-2 mt-4">
-              <label>Ice Rink URL (ActiveNet Auto-Fetch)</label>
-              <input
-                type="text"
-                value={scrapeUrl}
-                onChange={(e) => setScrapeUrl(e.target.value)}
-                placeholder="https://anc.ca.apm..."
-              />
-            </div>
-            <div className="flex-col gap-2 mt-4">
-              <label>OR: Ice Rink Schedule (Manual Text Fallback)</label>
+              <label>Fallback Ice Rink Schedule (Manual Text)</label>
               <textarea
                 rows="4"
                 value={manualTimesText}
