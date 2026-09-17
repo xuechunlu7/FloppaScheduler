@@ -12,7 +12,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [sources, setSources] = useState([
-    { url: 'https://anc.ca.apm.activecommunities.com/activewaterloo/activity/search?onlineSiteId=0&activity_select_param=2&activity_category_ids=35&viewMode=list', filter: '' }
+    { url: 'https://anc.ca.apm.activecommunities.com/activewaterloo/activity/search?onlineSiteId=0&activity_select_param=2&activity_category_ids=35&viewMode=list', activity_filter: '' }
   ]);
   const [weekFilter, setWeekFilter] = useState('This Week');
   const [manualTimesText, setManualTimesText] = useState('');
@@ -188,10 +188,10 @@ function App() {
                   />
                   <input
                     type="text"
-                    value={source.filter}
+                    value={source.activity_filter}
                     onChange={(e) => {
                       const newSources = [...sources];
-                      newSources[index].filter = e.target.value;
+                      newSources[index].activity_filter = e.target.value;
                       setSources(newSources);
                     }}
                     placeholder="Activity Filter (e.g., Adult Skate)"
@@ -217,7 +217,7 @@ function App() {
               <button 
                 className="secondary"
                 style={{ border: '1px dashed rgba(255,255,255,0.2)', background: 'transparent' }}
-                onClick={() => setSources([...sources, { url: '', filter: '' }])}
+                onClick={() => setSources([...sources, { url: '', activity_filter: '' }])}
               >
                 + Add Another City
               </button>
